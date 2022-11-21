@@ -15,7 +15,7 @@ from nexus.models import Model
 from nexus.protocol import Protocol, OPENAPI_VERSION
 from nexus.resolver import Resolver, AlmanacResolver
 from nexus.storage import KeyValueStore
-from nexus.network import get_ledger, get_reg_contract, get_wallet
+from nexus.network import get_ledger, get_reg_contract
 from nexus.config import REG_UPDATE_INTERVAL_SECONDS
 from nexus.config import REGISTRATION_FEE, REGISTRATION_DENOM
 
@@ -38,6 +38,7 @@ class Agent(Sink):
         name: Optional[str] = None,
         port: Optional[int] = None,
         seed: Optional[str] = None,
+        mnemonic: Optional[str] = None,
         endpoint: Optional[str] = None,
         resolve: Optional[Resolver] = None,
         version: Optional[str] = None,
@@ -52,9 +53,12 @@ class Agent(Sink):
             Identity.generate() if seed is None else Identity.from_seed(seed)
         )
         self._endpoint = endpoint if endpoint is not None else "123"
-        self._wallet = get_wallet(Identity.get_key(self.address))
-        self._ledger = get_ledger("fetchai-testnet")
-        self._reg_contract = get_reg_contract(self._ledger)
+        if mnemonic is not None:
+            self._wallet = LocalWallet.from_mnemonic(mnemonic)
+        else:
+            self._wallet = LocalWallet.generate()
+        self._ledger = get_ledger()
+        self._reg_contract = get_reg_contract()
         self._storage = KeyValueStore(self.address[0:16])
         self._models = {}
         self._replies = {}
@@ -146,12 +150,9 @@ class Agent(Sink):
 
     def registration_status(self) -> bool:
 
-        ledger = get_ledger("fetchai-testnet")
-        contract = get_reg_contract(ledger)
+        query_msg = {"query_records": {"address": self.address}}
 
-        query_msg = {"query_records": {"address": self._wallet.address()}}
-
-        if contract.query(query_msg)["record"] != []:
+        if self._reg_contract.query(query_msg)["record"] != []:
             return True
 
         return False

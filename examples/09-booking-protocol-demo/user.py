@@ -13,7 +13,7 @@ RESTAURANT_ADDRESS = "agent1qg3y7htj4vu60wscmmtyxtmcyptgkwyt23ynzv6qj8t303md8rr4
 user = Agent(
     name="user",
     port=8000,
-    seed="user secret phrase",
+    seed="user secret phrase1",
     endpoint="http://127.0.0.1:8000/submit",
 )
 
