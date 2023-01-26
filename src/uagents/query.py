@@ -14,6 +14,7 @@ from uagents.resolver import Resolver, AlmanacResolver
 async def query(
     destination: str,
     message: Model,
+    protocol: Optional[str] = "",
     resolver: Optional[Resolver] = None,
     timeout: Optional[int] = 30,
 ) -> Optional[Envelope]:
@@ -41,7 +42,7 @@ async def query(
         sender=generate_user_address(),
         target=destination,
         session=uuid.uuid4(),
-        protocol=schema_digest,
+        protocol=protocol,
         expires=expires,
     )
     env.encode_payload(json_message)
@@ -65,13 +66,15 @@ async def query(
     logging.exception(f"Unable to query {destination} @ {endpoint}")
 
 
-def enclose_response(message: Model, sender: str, session: str) -> dict:
+def enclose_response(
+    message: Model, sender: str, session: str, protocol: Optional[str] = ""
+) -> dict:
     response_env = Envelope(
         version=1,
         sender=sender,
         target="",
         session=session,
-        protocol=Model.build_schema_digest(message),
+        protocol=protocol,
     )
     response_env.encode_payload(message.json())
     return response_env.json()

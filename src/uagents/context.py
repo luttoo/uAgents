@@ -72,6 +72,7 @@ class Context:
         self,
         destination: str,
         message: Model,
+        protocol: Optional[str] = "",
         timeout: Optional[int] = DEFAULT_ENVELOPE_TIMEOUT_SECONDS,
     ):
         # convert the message into object form
@@ -132,7 +133,7 @@ class Context:
             sender=self.address,
             target=destination,
             session=uuid.uuid4(),
-            protocol=schema_digest,
+            protocol=protocol,
             expires=expires,
         )
         env.encode_payload(json_message)
